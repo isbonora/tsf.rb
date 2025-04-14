@@ -20,7 +20,7 @@ class ModelTest < Minitest::Test
     # Check if the header information is present
     assert_equal vector.material_group, "Acrylic"
     assert_equal vector.material_name, "3mm Acrylic"
-    assert_equal vector.job_name, "ISAAC BONORA black monochrome"
+    assert_equal vector.job_name, "ISAAC BONORA just cutting"
     assert_equal vector.job_number, "1234"
     assert_equal vector.resolution, 500
     assert_equal vector.size, [52.02, 292.05]
