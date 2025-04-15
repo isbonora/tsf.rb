@@ -4,7 +4,7 @@ require "minitest/autorun"
 
 class ModelTest < Minitest::Test
 
-  def test_load_tsf
+  def test_load_tsf_without_image
     # Load the TSF file
     data = File.read("test/fixtures/basic_file.tsf")
 
@@ -24,12 +24,33 @@ class ModelTest < Minitest::Test
     assert_equal vector.job_number, "1234"
     assert_equal vector.resolution, 500
     assert_equal vector.size, [52.02, 292.05]
+    
     # basic file has no bitmap
     assert_nil vector.bitmap
 
     # Check if the polygons are present
     assert vector.polygons.any?, "Polygons should be present"
 
+  end
+
+  def test_load_tsf_with_image
+    # Load the TSF file
+    data = File.read("test/fixtures/bitmap_file.tsf")
+    # Parse the TSF data
+    vector = Tsf::Vector.load_tsf(data)
+
+    # Check if the vector object is loaded
+    assert vector.loaded, "Vector object should be loaded"
+
+    # Check if the header information is present
+    assert_equal vector.material_group, "Acrylic"
+    assert_equal vector.material_name, "3mm Acrylic"
+    assert_equal vector.job_name, "ISAAC BONORA with engraving"
+    assert_equal vector.job_number, "1234"
+    assert_equal vector.resolution, 500
+    assert_equal vector.size, [42.01, 288.04]
+
+    assert vector.bitmap, "Bitmap should be present"
   end
 
   def test_polygon_data

@@ -1,6 +1,8 @@
 module Tsf
   # Loads a TSF file and parses its content
   class Vector
+    require_relative 'convert/tsf_to_svg'
+    require_relative 'convert/tsf_to_image'
     attr_reader :loaded, :grouped_data, :polygons, :headers
     attr_reader :material_group, :material_name, :job_name, :job_number, :resolution, :size, :bitmap
 
@@ -22,7 +24,7 @@ module Tsf
 
       # Usualy 500 DPI.
       @resoultion = nil
-      # Will be set artboard size. when creating the tsf.
+      # Will be set artboard size. when creating theå tsf.
       @size = nil
 
       ## Image Data
@@ -57,7 +59,8 @@ module Tsf
       vector
     end
 
-  
+     
+
     def parse_tsf(data)
       # Tsf files are text formatted files that repsresnte vector paths for a Troctec laser to follow. Similar to that of Gcode.
       # TSF file use a xml-like format the prefix "BegGroup" and "EndGroup" to denote the start and end of a group of commands or meta data.
@@ -96,7 +99,11 @@ module Tsf
 
       @polygons = get_polygons(@grouped_data)
 
+      puts @grouped_data['Bitmap']['STBmp'][0..100] if @grouped_data.key?('Bitmap')
+      @bitmap = @grouped_data['Bitmap']['STBmp'] if @grouped_data.key?('Bitmap')
+
       @loaded = true
+
       @grouped_data
     end
 
@@ -121,6 +128,8 @@ module Tsf
         # groups can have multple commands.
         # a command has only one value.
 
+
+
         command, value = line.split(":").map(&:strip).map { |s| s.gsub(/<|>/, '') }
         
         case command
@@ -130,6 +139,13 @@ module Tsf
         when "EndGroup"
           # End the current group
           current_groups.pop
+        when "STBmp"
+          # Handle the bitmap datas
+          # Bitmap data is found between the <STBmp: 0;0> and <EOBmp>. in this case.
+          
+          bitmap_data = line.gsub(/<STBmp: 0;0>|<EOBmp>/, "")
+          current = nested_group_and_values.dig(*current_groups)
+          current[command] = bitmap_data
         else
           # Assign the command and value to the appropriate group
           if current_groups.any?
@@ -158,11 +174,20 @@ module Tsf
           'points': []
         }
 
-        polygon[:data] = polygon_array.drop(4).map(&:to_i).each_slice(2).to_a
+        polygon[:points] = polygon_array.drop(4).map(&:to_i)
 
         polygons << polygon
       end
       polygons
     end
+
+    def to_svg
+      raise "Vector not loaded" unless @loaded
+
+      # Convert the polygons to SVG format
+      svg_data = Tsf::Convert::Svg.new(self).convert
+      svg_data
+    end
+
   end
 end

@@ -9,4 +9,7 @@ Gem::Specification.new do |s|
     s.homepage    =
       "https://rubygems.org/gems/tsfrb"
     s.license       = "MIT"
+
+    s.add_runtime_dependency "ruby-vips", "~> 2.1"
+    s.required_ruby_version = Gem::Requirement.new(">= 3.1.0")
   end
